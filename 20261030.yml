@@ -1,0 +1,205 @@
+from: "E:/BaiduSyncdisk/rAthenaZhCNClient0219/Ragexe-2026-02-19_unpacked.exe"
+to: "E:/BaiduSyncdisk/rAthenaZhCNClient0219/Ragexe-2026-02-19_patched.exe"
+inputs:
+    $newMapInfo:
+        data: '53797374656d454e2f6d6170496e666f2e6c756200'
+        display: "SystemEN/mapInfo.lub"
+        type: 10
+    
+    $translationFile:
+        data: ''
+        display: "Inputs/Translations_EN.yml"
+        type: 10
+    
+    $InventoryExpandMax:
+        data: 'f4010000'
+        display: 500
+        type: 2
+    
+    $newFontHgt:
+        data: '0b'
+        display: 11
+        type: 2
+    
+    $newRuneSetDesc:
+        data: '53797374656d454e5c52756e655c72756e657365745f646573632e6c756200'
+        display: "SystemEN\\Rune\\runeset_desc.lub"
+        type: 10
+    
+    $newQuestQuali:
+        data: '53797374656d454e2f5175657374436c617373696669636174696f6e496e666f2e6c756200'
+        display: "SystemEN/QuestClassificationInfo.lub"
+        type: 10
+    
+    $newruneSystable:
+        data: '53797374656d454e5c52756e655c72756e6553797374656d5f7461626c652e6c756200'
+        display: "SystemEN\\Rune\\runeSystem_table.lub"
+        type: 10
+    
+    $newrunesysInfo:
+        data: '53797374656d454e5c52756e655c72756e6573797374656d496e666f00'
+        display: "SystemEN\\Rune\\runesystemInfo"
+        type: 10
+    
+    $newruneinfo:
+        data: '53797374656d454e5c52756e655c72756e655f696e666f2e6c756200'
+        display: "SystemEN\\Rune\\rune_info.lub"
+        type: 10
+    
+    $newRcmdQInfoList:
+        data: '53797374656d454e2f5265636f6d6d656e64656451756573747300'
+        display: "SystemEN/RecommendedQuests"
+        type: 10
+    
+    $newrunesysid:
+        data: '53797374656d454e5c52756e655c72756e6573797374656d69642e6c756200'
+        display: "SystemEN\\Rune\\runesystemid.lub"
+        type: 10
+    
+    $newitemDecom:
+        data: '53797374656d454e5c52756e655c6974656d4465636f6d2e6c756200'
+        display: "SystemEN\\Rune\\itemDecom.lub"
+        type: 10
+    
+    $newTipBox:
+        data: '53797374656d454e2f746970626f782e6c756200'
+        display: "SystemEN/tipbox.lub"
+        type: 10
+    
+    $newPrivAirplane:
+        data: '53797374656d454e5c50726976617465416972706c616e655f547275652e6c756200'
+        display: "SystemEN\\PrivateAirplane_True.lub"
+        type: 10
+    
+    $newchangemat:
+        data: '53797374656d454e5c4368616e67654d6174657269616c2e6c756200'
+        display: "SystemEN\\ChangeMaterial.lub"
+        type: 10
+    
+    $newOngQInfoList:
+        data: '53797374656d454e2f4f6e676f696e6751756573747300'
+        display: "SystemEN/OngoingQuests"
+        type: 10
+    
+    $customCodePage:
+        data: 'a8030000'
+        display: 936
+        type: 2
+    
+    $newspopup:
+        data: '53797374656d454e2f73706f7075702e6c756200'
+        display: "SystemEN/spopup.lub"
+        type: 10
+    
+    $newFont:
+        data: '4d6963726f736f66742053616e7320536572696600'
+        display: "Microsoft Sans Serif"
+        type: 10
+    
+    $newRuneDesc:
+        data: '53797374656d454e5c52756e655c72756e655f646573632e6c756200'
+        display: "SystemEN\\Rune\\rune_desc.lub"
+        type: 10
+    
+    $newTownInfo:
+        data: '53797374656d454e2f546f776e696e666f2e6c756200'
+        display: "SystemEN/Towninfo.lub"
+        type: 10
+    
+    $newPetEvoCln:
+        data: '73797374656d454e5c50657445766f6c7574696f6e436c6e5f747275652e6c756200'
+        display: "systemEN\\PetEvolutionCln_true.lub"
+        type: 10
+    
+    $newCheckAtt:
+        data: '53797374656d454e5c436865636b417474656e64616e63652e6c756200'
+        display: "SystemEN\\CheckAttendance.lub"
+        type: 10
+    
+    $textLang:
+        data: '53696d706c6966696564204368696e657365202847424b203933362900'
+        display: "Simplified Chinese (GBK 936)"
+        type: 10
+    
+    $newMonSizeEffect:
+        data: '53797374656d454e5c6d6f6e737465725f73697a655f6566666563745f6e65772e6c756200'
+        display: "SystemEN\\monster_size_effect_new.lub"
+        type: 10
+    
+    $newAchieveList:
+        data: '53797374656d454e2f616368696576656d656e74732e6c756200'
+        display: "SystemEN/achievements.lub"
+        type: 10
+    
+    $newrunerewInfo:
+        data: '53797374656d454e5c52756e655c72756e657365745f7265776172642e6c756200'
+        display: "SystemEN\\Rune\\runeset_reward.lub"
+        type: 10
+    
+    $dataINI:
+        data: '444154412e494e4900'
+        display: "DATA.INI"
+        type: 10
+    
+    $newItemInfo:
+        data: '53797374656d454e2f6974656d696e666f2e6c756100'
+        display: "SystemEN/iteminfo.lua"
+        type: 10
+    
+    $newFontCharset:
+        data: '47423233313200'
+        display: "GB2312"
+        type: 10
+    
+    $newrunesetinfo:
+        data: '53797374656d454e5c52756e655c72756e657365745f696e666f2e6c756200'
+        display: "SystemEN\\Rune\\runeset_info.lub"
+        type: 10
+    
+patches:
+    - NoGMSprite
+    - EnableWho
+    - EnableShowName
+    - MediumCamAngle
+    - Zoom50Percent
+    - UseOldLogin
+    - FixFontsCharset
+    - TextEncoding
+    - CustomCodePage
+    - DataFolderFirst
+    - PlainTextDesc
+    - LoadKrExtSettings
+    - TranslateClient
+    - CustomItemInfoLub
+    - CustomMonSizeEffLub
+    - CustomTownInfoLub
+    - CustomPetEvoClnLub
+    - CustomCheckAttLub
+    - CustomPrivAirplaneLub
+    - CustomMapInfoLub
+    - CustomOngQuestInfoLub
+    - CustomRcmdQuestInfoLub
+    - CustomspopupLub
+    - CustomChangeMatLub
+    - CustomQuestQualiLub
+    - EnableSysMenu
+    - No1and1Arg
+    - RestoreIcon
+    - NoNagle
+    - AllowHostnameAddress
+    - NoPassEncr
+    - Enable44kHzAudio
+    - EquipPropTextTabsWide
+    - OpenToServiceSelect
+    - GuildBrackets
+    - FixChatAt
+    - NoHourly
+    - CustomInventoryExpandingLimit
+    - NoHelpMsg
+    - FixSkillbarReset
+    - NoGravityAds
+    - NoGravityLogo
+    - CustomFontName
+    - CustomFontHeight
+    - CustomFontCharset
+    - FixLatestNCWin

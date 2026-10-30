@@ -1,0 +1,37 @@
+/**************************************************************************\
+*                                                                          *
+*   Undo pre-applied AlwaysAscii for the 2026-02-19 Ragexe                 *
+*                                                                          *
+*   The Noxara/Hewooo unpacked base ships with AlwaysAscii already baked.  *
+*   AlwaysAscii NOPs the JL instruction inside CSession::IsOnlyEnglish.    *
+*   This patch restores that JL so the client can treat non-ASCII text as  *
+*   non-ASCII again.                                                       *
+*                                                                          *
+\**************************************************************************/
+
+UndoAlwaysAscii = function(_)
+{
+	$$(_, 1.1, `Find the NOPed IsOnlyEnglish comparison`);
+
+	// CSession::IsOnlyEnglish:
+	//   80 3C 10 00   cmp byte ptr [eax+edx], 0
+	//   7C 0B         jl  0xDFA631  (return 0 for non-ASCII)
+	//   40            inc eax
+	//   3B C1         cmp eax, ecx
+	const patched = Exe.FindHex("80 3C 10 00 90 90 40 3B C1");
+	if (patched < 0)
+	{
+		const original = Exe.FindHex("80 3C 10 00 7C 0B 40 3B C1");
+		if (original > 0)
+		{
+			Cancel("AlwaysAscii is already removed");
+			return true;
+		}
+		throw Error("UndoAlwaysAscii: IsOnlyEnglish pattern not found");
+	}
+
+	$$(_, 1.2, `Restore the original JL 0B`);
+	Exe.SetHex(patched + 4, " 7C 0B");
+
+	return true;
+};

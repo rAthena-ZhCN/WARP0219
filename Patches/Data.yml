@@ -75,11 +75,23 @@ CustomData:
             author : Noxara Solutions
             desc : Forces the client's text code page to a chosen language (Simplified Chinese GBK, Traditional Chinese Big5, Japanese, Korean, Thai, Vietnamese, Cyrillic, Arabic, or Western). ASCII/English stays readable.
 
+        - CustomCodePage:
+            title : Override client codepage
+            recommend : no
+            author : Louis T Steinhil, adapted for 2026-02-19
+            desc : Overrides the client's multibyte code page by patching _setmbcp, the langtype mapper and all global code-page assignments. Use 936 for Simplified Chinese. This is the 0219 equivalent of the WARP0716 CustomCodePage patch.
+
         - AlwaysAscii:
             title : Use Ascii on All
             recommend : no
             author : Ai4rei/AN
             desc : Forces ASCII text rendering regardless of the selected font or langtype. Ensures English characters always display correctly on all service types.
+
+        - UndoAlwaysAscii:
+            title : Undo pre-applied AlwaysAscii
+            recommend : no
+            author : local
+            desc : Restores the NOPed JL inside CSession::IsOnlyEnglish. Use when the base Ragexe already has AlwaysAscii baked in and a normal WARP session cannot disable it. Rebuild from the unpacked source after applying this patch.
         
         - CustomSSQuality:
             title : Customize screenshot quality
