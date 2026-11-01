@@ -77,7 +77,7 @@ static bool LogCallerOnce(DWORD caller)
     {
         if (g_seen[i] == caller)
         {
-            if (g_sampleCount[i] < 5) { g_sampleCount[i]++; return true; }
+            if (g_sampleCount[i] < 50) { g_sampleCount[i]++; return true; }
             return false;
         }
     }
