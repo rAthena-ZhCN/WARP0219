@@ -1,0 +1,3 @@
+- Name: NpcFontProbe.dll
+  Funcs:
+    - Name: NpcFontProbeInit
