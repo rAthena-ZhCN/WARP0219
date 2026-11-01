@@ -78,7 +78,7 @@ static bool LogCallerOnce(DWORD caller)
     {
         if (g_seen[i] == caller)
         {
-            if (g_sampleCount[i] < 50) { g_sampleCount[i]++; return true; }
+            if (g_sampleCount[i] < 5000) { g_sampleCount[i]++; return true; }
             return false;
         }
     }
@@ -139,6 +139,7 @@ static BOOL WINAPI MyTextOutA(HDC hdc, int x, int y, LPCSTR s, int c)
 
 static DWORD g_wrapperCaller = 0;
 static DWORD g_renderCaller = 0;
+static DWORD g_highCaller = 0;
 static void* g_wrapperTramp = nullptr;
 static void* g_wrapperTarget = nullptr;
 static void* g_renderTramp = nullptr;
@@ -162,6 +163,8 @@ __declspec(naked) void MyRenderEntry()
     {
         mov eax, [esp]
         mov dword ptr [g_renderCaller], eax
+        mov eax, [ebp + 4]
+        mov dword ptr [g_highCaller], eax
         jmp dword ptr [g_renderTramp]
     }
 }
@@ -207,7 +210,7 @@ static void InstallRenderHook()
 static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
 {
     DWORD caller = (DWORD)(uintptr_t)_ReturnAddress();
-    DWORD realCaller = g_renderCaller ? g_renderCaller : (g_wrapperCaller ? g_wrapperCaller : caller);
+    DWORD realCaller = g_highCaller ? g_highCaller : (g_renderCaller ? g_renderCaller : (g_wrapperCaller ? g_wrapperCaller : caller));
 
     if (s && LogCallerOnce(realCaller))
     {
@@ -221,8 +224,8 @@ static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
         char hex[512] = {0};
         HexSample((const unsigned char*)gbk, n, hex, sizeof(hex));
         LogFontInfo(hdc, "TEXTOUTW", realCaller);
-        Log("TEXTOUTW caller=%08X raw=%08X wrapper=%08X x=%d y=%d len=%d gbk=%s text=%s\n",
-            realCaller, caller, g_wrapperCaller, x, y, c, gbk, hex);
+        Log("TEXTOUTW caller=%08X raw=%08X wrapper=%08X render=%08X x=%d y=%d len=%d gbk=%s text=%s\n",
+            realCaller, caller, g_wrapperCaller, g_renderCaller, x, y, c, gbk, hex);
     }
     typedef BOOL (WINAPI* Fn)(HDC,int,int,LPCWSTR,int);
     return ((Fn)g_realTextOutW)(hdc, x, y, s, c);
