@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <cstdint>
 #include <cstring>
+#include <cstdarg>
 
 static HMODULE g_main;
 static void* g_realTextOutW = nullptr;
@@ -19,6 +20,31 @@ struct FontEntry
 };
 static FontEntry g_fonts[8];
 static int g_fontCount = 0;
+
+static char g_logPath[MAX_PATH];
+static CRITICAL_SECTION g_cs;
+static bool g_loggedBody = false;
+static bool g_loggedOpt = false;
+
+static void LogFix(const char* fmt, ...)
+{
+    char buf[1024];
+    va_list ap;
+    va_start(ap, fmt);
+    int n = wvsprintfA(buf, fmt, ap);
+    va_end(ap);
+    if (n <= 0) return;
+    EnterCriticalSection(&g_cs);
+    HANDLE h = CreateFileA(g_logPath, FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h != INVALID_HANDLE_VALUE)
+    {
+        DWORD w = 0;
+        WriteFile(h, buf, (DWORD)n, &w, NULL);
+        CloseHandle(h);
+    }
+    LeaveCriticalSection(&g_cs);
+}
 
 // The client's high-level text renderer starts at RVA 0x150190.
 // Capture its caller before the prologue so we can identify the NPC window.
@@ -97,9 +123,19 @@ static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
 
     HFONT big = GetNpcFont(hdc);
     if (!big)
+    {
+        if (g_highCaller == 0x00A843DF && !g_loggedBody)
+        { g_loggedBody = true; LogFix("body caller=%08X bigfont=null\n", g_highCaller); }
+        if (g_highCaller == 0x00A8501C && !g_loggedOpt)
+        { g_loggedOpt = true; LogFix("opt caller=%08X bigfont=null\n", g_highCaller); }
         return real(hdc, x, y, s, c);
+    }
 
     HGDIOBJ old = SelectObject(hdc, big);
+    if (g_highCaller == 0x00A843DF && !g_loggedBody)
+    { g_loggedBody = true; LogFix("body caller=%08X bigfont=%08X oldfont=%08X\n", g_highCaller, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
+    if (g_highCaller == 0x00A8501C && !g_loggedOpt)
+    { g_loggedOpt = true; LogFix("opt caller=%08X bigfont=%08X oldfont=%08X\n", g_highCaller, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
     BOOL result = real(hdc, x, y, s, c);
     if (old) SelectObject(hdc, old);
     return result;
@@ -146,8 +182,17 @@ static void* HookIat(HMODULE mod, const char* targetDll, const char* funcName, v
 static DWORD WINAPI InitThread(LPVOID)
 {
     g_main = GetModuleHandleA(NULL);
+    char exe[MAX_PATH] = {0};
+    GetModuleFileNameA(NULL, exe, MAX_PATH);
+    char* slash = strrchr(exe, '\\');
+    if (slash) *(slash + 1) = 0;
+    wsprintfA(g_logPath, "%sNpcFontFix.log", exe);
+    InitializeCriticalSection(&g_cs);
     InstallRenderHook();
     g_realTextOutW = HookIat(g_main, "gdi32.dll", "TextOutW", (void*)MyTextOutW);
+    LogFix("init base=%08X renderTarget=%08X renderTramp=%08X realTextOutW=%08X\n",
+        (DWORD)(uintptr_t)g_main, (DWORD)(uintptr_t)g_renderTarget,
+        (DWORD)(uintptr_t)g_renderTramp, (DWORD)(uintptr_t)g_realTextOutW);
     return 0;
 }
 
