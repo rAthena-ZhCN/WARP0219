@@ -52,7 +52,7 @@ __declspec(naked) void MyRenderEntry()
 {
     __asm
     {
-        mov eax, [esp]
+        mov eax, [ebp + 4]
         mov dword ptr [g_highCaller], eax
         jmp dword ptr [g_renderTramp]
     }
