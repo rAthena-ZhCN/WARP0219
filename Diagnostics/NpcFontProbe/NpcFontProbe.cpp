@@ -134,22 +134,45 @@ static BOOL WINAPI MyTextOutA(HDC hdc, int x, int y, LPCSTR s, int c)
 }
 
 
-static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
+
+extern "C" void __cdecl LogTextW(DWORD caller, HDC hdc, int x, int y, LPCWSTR s, int c)
 {
-    DWORD caller = (DWORD)(uintptr_t)_ReturnAddress();
-    if (s && LogCallerOnce(caller))
+    if (!s || !LogCallerOnce(caller))
+        return;
+    char gbk[1024] = {0};
+    int n = WideCharToMultiByte(936, 0, s, (c < 0 ? -1 : c), gbk, sizeof(gbk) - 1, NULL, NULL);
+    if (n < 0) n = 0;
+    gbk[n] = 0;
+    char hex[512] = {0};
+    HexSample((const unsigned char*)gbk, n, hex, sizeof(hex));
+    LogFontInfo(hdc, "TEXTOUTW", caller);
+    Log("TEXTOUTW caller=%08X x=%d y=%d len=%d gbk=%s text=%s\n", caller, x, y, c, gbk, hex);
+}
+
+// TextOutW is called from the generic wrapper 0x550747. At this point EBP still
+// belongs to the wrapper, so [ebp+4] is the real high-level drawing caller.
+__declspec(naked) BOOL WINAPI MyTextOutWNaked()
+{
+    __asm
     {
-        char gbk[1024] = {0};
-        int n = WideCharToMultiByte(936, 0, s, (c < 0 ? -1 : c), gbk, sizeof(gbk) - 1, NULL, NULL);
-        if (n < 0) n = 0;
-        gbk[n] = 0;
-        char hex[512] = {0};
-        HexSample((const unsigned char*)gbk, n, hex, sizeof(hex));
-        LogFontInfo(hdc, "TEXTOUTW", caller);
-        Log("TEXTOUTW caller=%08X x=%d y=%d len=%d gbk=%s text=%s\n", caller, x, y, c, gbk, hex);
+        pushad
+        mov eax, [ebp + 0x18]
+        push eax
+        mov eax, [ebp + 0x14]
+        push eax
+        mov eax, [ebp + 0x10]
+        push eax
+        mov eax, [ebp + 0x0c]
+        push eax
+        mov eax, [ebp + 0x08]
+        push eax
+        mov eax, [ebp + 0x04]
+        push eax
+        call LogTextW
+        add esp, 24
+        popad
+        jmp dword ptr [g_realTextOutW]
     }
-    typedef BOOL (WINAPI* Fn)(HDC,int,int,LPCWSTR,int);
-    return ((Fn)g_realTextOutW)(hdc, x, y, s, c);
 }
 
 static BOOL WINAPI MyExtTextOutA(HDC hdc, int x, int y, UINT opts, const RECT* rc, LPCSTR s, UINT c, const INT* dx)
@@ -227,7 +250,7 @@ static DWORD WINAPI InitThread(LPVOID)
     g_realCreateFontA = HookIat(g_main, "gdi32.dll", "CreateFontA", (void*)MyCreateFontA);
     g_realCreateFontIndirectA = HookIat(g_main, "gdi32.dll", "CreateFontIndirectA", (void*)MyCreateFontIndirectA);
     g_realTextOutA = HookIat(g_main, "gdi32.dll", "TextOutA", (void*)MyTextOutA);
-    g_realTextOutW = HookIat(g_main, "gdi32.dll", "TextOutW", (void*)MyTextOutW);
+    g_realTextOutW = HookIat(g_main, "gdi32.dll", "TextOutW", (void*)MyTextOutWNaked);
     g_realExtTextOutA = HookIat(g_main, "gdi32.dll", "ExtTextOutA", (void*)MyExtTextOutA);
     g_realDrawTextA = HookIat(g_main, "user32.dll", "DrawTextA", (void*)MyDrawTextA);
     Log("hooks: FONTA=%p FONTI=%p TEXTOUT=%p TEXTOUTW=%p EXTTEXTOUT=%p DRAWTEXT=%p\n",
