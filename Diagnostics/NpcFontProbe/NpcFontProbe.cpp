@@ -138,8 +138,11 @@ static BOOL WINAPI MyTextOutA(HDC hdc, int x, int y, LPCSTR s, int c)
 
 
 static DWORD g_wrapperCaller = 0;
+static DWORD g_renderCaller = 0;
 static void* g_wrapperTramp = nullptr;
 static void* g_wrapperTarget = nullptr;
+static void* g_renderTramp = nullptr;
+static void* g_renderTarget = nullptr;
 
 // The client's generic text wrapper starts at RVA 0x150680. At entry,
 // [esp] is the high-level drawing caller. Capture it before the wrapper prologue.
@@ -150,6 +153,16 @@ __declspec(naked) void MyWrapperEntry()
         mov eax, [esp]
         mov dword ptr [g_wrapperCaller], eax
         jmp dword ptr [g_wrapperTramp]
+    }
+}
+
+__declspec(naked) void MyRenderEntry()
+{
+    __asm
+    {
+        mov eax, [esp]
+        mov dword ptr [g_renderCaller], eax
+        jmp dword ptr [g_renderTramp]
     }
 }
 
@@ -174,10 +187,27 @@ static void InstallWrapperHook()
     VirtualProtect(g_wrapperTarget, 6, oldProt, &oldProt);
 }
 
+static void InstallRenderHook()
+{
+    g_renderTarget = (BYTE*)GetModuleHandleA(NULL) + 0x150190;
+    DWORD oldProt = 0;
+    VirtualProtect(g_renderTarget, 6, PAGE_EXECUTE_READWRITE, &oldProt);
+    g_renderTramp = VirtualAlloc(NULL, 16, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if (!g_renderTramp) return;
+    memcpy(g_renderTramp, g_renderTarget, 6);
+    BYTE* tramp = (BYTE*)g_renderTramp;
+    tramp[6] = 0xE9;
+    *(int32_t*)(tramp + 7) = (int32_t)((BYTE*)g_renderTarget + 6 - (tramp + 11));
+    BYTE* target = (BYTE*)g_renderTarget;
+    target[0] = 0xE9;
+    *(int32_t*)(target + 1) = (int32_t)((BYTE*)MyRenderEntry - (target + 5));
+    VirtualProtect(g_renderTarget, 6, oldProt, &oldProt);
+}
+
 static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
 {
     DWORD caller = (DWORD)(uintptr_t)_ReturnAddress();
-    DWORD realCaller = g_wrapperCaller ? g_wrapperCaller : caller;
+    DWORD realCaller = g_renderCaller ? g_renderCaller : (g_wrapperCaller ? g_wrapperCaller : caller);
 
     if (s && LogCallerOnce(realCaller))
     {
@@ -191,8 +221,8 @@ static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
         char hex[512] = {0};
         HexSample((const unsigned char*)gbk, n, hex, sizeof(hex));
         LogFontInfo(hdc, "TEXTOUTW", realCaller);
-        Log("TEXTOUTW caller=%08X raw=%08X x=%d y=%d len=%d gbk=%s text=%s\n",
-            realCaller, caller, x, y, c, gbk, hex);
+        Log("TEXTOUTW caller=%08X raw=%08X wrapper=%08X x=%d y=%d len=%d gbk=%s text=%s\n",
+            realCaller, caller, g_wrapperCaller, x, y, c, gbk, hex);
     }
     typedef BOOL (WINAPI* Fn)(HDC,int,int,LPCWSTR,int);
     return ((Fn)g_realTextOutW)(hdc, x, y, s, c);
@@ -277,6 +307,7 @@ static DWORD WINAPI InitThread(LPVOID)
     g_realExtTextOutA = HookIat(g_main, "gdi32.dll", "ExtTextOutA", (void*)MyExtTextOutA);
     g_realDrawTextA = HookIat(g_main, "user32.dll", "DrawTextA", (void*)MyDrawTextA);
     InstallWrapperHook();
+    InstallRenderHook();
     Log("hooks: FONTA=%p FONTI=%p TEXTOUT=%p TEXTOUTW=%p EXTTEXTOUT=%p DRAWTEXT=%p\n",
         g_realCreateFontA, g_realCreateFontIndirectA, g_realTextOutA, g_realTextOutW, g_realExtTextOutA, g_realDrawTextA);
     return 0;
