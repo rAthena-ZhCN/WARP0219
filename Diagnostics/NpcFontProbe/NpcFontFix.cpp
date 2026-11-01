@@ -83,8 +83,8 @@ static HFONT GetNpcFont(HDC hdc)
         return nullptr;
 
     int targetHeight = lf.lfHeight;
-    if (targetHeight < 0) targetHeight -= 1; // -14 -> -15
-    else targetHeight += 1;                 // 14 -> 15
+    if (targetHeight < 0) targetHeight -= 2; // 1 size larger, safely above default
+    else targetHeight += 2;                  // 1 size larger, safely above default
 
     for (int i = 0; i < g_fontCount; ++i)
     {
@@ -133,9 +133,9 @@ static BOOL WINAPI MyTextOutW(HDC hdc, int x, int y, LPCWSTR s, int c)
 
     HGDIOBJ old = SelectObject(hdc, big);
     if (g_highCaller == 0x00A843DF && !g_loggedBody)
-    { g_loggedBody = true; LogFix("body caller=%08X bigfont=%08X oldfont=%08X\n", g_highCaller, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
+    { g_loggedBody = true; LOGFONTA lf = {}; GetObjectA(old, sizeof(lf), &lf); LogFix("body caller=%08X oldH=%d bigfont=%08X oldfont=%08X\n", g_highCaller, lf.lfHeight, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
     if (g_highCaller == 0x00A8501C && !g_loggedOpt)
-    { g_loggedOpt = true; LogFix("opt caller=%08X bigfont=%08X oldfont=%08X\n", g_highCaller, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
+    { g_loggedOpt = true; LOGFONTA lf = {}; GetObjectA(old, sizeof(lf), &lf); LogFix("opt caller=%08X oldH=%d bigfont=%08X oldfont=%08X\n", g_highCaller, lf.lfHeight, (DWORD)(uintptr_t)big, (DWORD)(uintptr_t)old); }
     BOOL result = real(hdc, x, y, s, c);
     if (old) SelectObject(hdc, old);
     return result;
